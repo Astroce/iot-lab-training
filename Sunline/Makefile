@@ -21,3 +21,4 @@ LORA_REGION ?= EU868
 RIOTBASE ?= $(CURDIR)/../riot/RIOT
 
 include $(RIOTBASE)/Makefile.include
+include $(RIOTBASE)/dist/testbed-support/Makefile.iotlab

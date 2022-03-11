@@ -6,5 +6,5 @@ iotlab-experiment wait --timeout 30 --cancel-on-timeout
 
 iotlab-experiment --jmespath="items[*].network_address | sort(@)" get --nodes
 
-make BOARD=b-l072z-lrwan1 IOTLAB_NODES=2 -C ../Sunline iotlab-flash
+make BOARD=b-l072z-lrwan1 IOTLAB_NODES=2 -C ../Sunline iotlab-flash  
 

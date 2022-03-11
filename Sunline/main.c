@@ -10,9 +10,9 @@ static hts221_t hts221;
 
 /* Device and application parameters required for OTAA activation here */
 
-static const uint8_t appeui[LORAMAC_APPEUI_LEN] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-static const uint8_t deveui[LORAMAC_DEVEUI_LEN] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x04, 0xD2, 0x38 };
-static const uint8_t appkey[LORAMAC_APPKEY_LEN] = { 0x68, 0x7A, 0x6F, 0xF8, 0xE7, 0x2F, 0xE0, 0x43, 0x4F, 0x5A, 0xBF, 0x61, 0xF1, 0x2F, 0x79, 0xCF };
+uint8_t appeui[LORAMAC_APPEUI_LEN] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+uint8_t deveui[LORAMAC_DEVEUI_LEN] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x04, 0xD2, 0x38 };
+uint8_t appkey[LORAMAC_APPKEY_LEN] = { 0x68, 0x7A, 0x6F, 0xF8, 0xE7, 0x2F, 0xE0, 0x43, 0x4F, 0x5A, 0xBF, 0x61, 0xF1, 0x2F, 0x79, 0xCF };
 
 int main (void)
 {    
@@ -56,11 +56,31 @@ int main (void)
     /* start the OTAA join procedure */
     
     if (semtech_loramac_join(&loramac, LORAMAC_JOIN_OTAA) != SEMTECH_LORAMAC_JOIN_SUCCEEDED) 
-    {
-        puts("Join procedure failed");
-        return 1;
+    {   
+        ztimer_sleep(ZTIMER_MSEC, 5 * MS_PER_SEC);
+        
+        uint8_t appeui[LORAMAC_APPEUI_LEN] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        uint8_t deveui[LORAMAC_DEVEUI_LEN] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x04, 0xDC, 0x6C };
+        uint8_t appkey[LORAMAC_APPKEY_LEN] = { 0x96, 0xEE, 0x0D, 0x5A, 0x98, 0xBA, 0x34, 0x95, 0x56, 0xAB, 0x90, 0xFB, 0xAB, 0x46, 0x5A, 0x0A };
+
+        semtech_loramac_set_deveui(&loramac, deveui);
+        semtech_loramac_set_appeui(&loramac, appeui);
+        semtech_loramac_set_appkey(&loramac, appkey);
+
+        semtech_loramac_set_dr(&loramac, 5);
+        
+        if (semtech_loramac_join(&loramac, LORAMAC_JOIN_OTAA) != SEMTECH_LORAMAC_JOIN_SUCCEEDED)
+        {
+            puts("Join procedure failed");
+        }
+        
+        else
+        {
+            puts("Join procedure succeeded with new APPKEY");
+        }
+        
     }
-    
+        
     puts("Join procedure succeeded");
     
     for EVER

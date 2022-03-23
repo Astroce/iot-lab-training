@@ -14,6 +14,8 @@ USEMODULE += lsm303dlhc
 
 USEMODULE += sx1276
 
+USEPKG += cayenne-lpp
+
 USEPKG += semtech-loramac
 
 LORA_REGION ?= EU868

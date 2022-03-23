@@ -1,16 +1,14 @@
 #include "main.h"
 
-static sx127x_t sx127x;      /* The sx127x radio driver descriptor */
+static sx127x_t sx127x;   
 
-/* Declare the loramac descriptor globally here */
-
-semtech_loramac_t loramac;  /* The loramac stack descriptor */
+static semtech_loramac_t loramac; 
 
 static hts221_t hts221;
 
-/* Device and application parameters required for OTAA activation here */
+static cayenne_lpp_t lpp;
 
-const uint8_t appeui[LORAMAC_APPEUI_LEN] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+const uint8_t appeui[LORAMAC_APPEUI_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 const uint8_t deveui[5][LORAMAC_DEVEUI_LEN] =
 {
@@ -30,10 +28,10 @@ const uint8_t appkey[5][LORAMAC_APPKEY_LEN] =
     {0x70, 0x3F, 0x33, 0x62, 0x47, 0x42, 0x40, 0x72, 0xFF, 0xB0, 0x5E, 0x86, 0x29, 0xA0, 0x97, 0x7C}
 };
 
-int count;
-
 int main (void)
-{    
+{ 
+    uint8_t count;
+    
     if (hts221_init(&hts221, &hts221_params[0]) != HTS221_OK) 
     {
         puts("Sensor initialization failed");
@@ -86,6 +84,8 @@ int main (void)
 
             semtech_loramac_set_dr(&loramac, 5);
             
+            ztimer_sleep(ZTIMER_MSEC, 2 * MS_PER_SEC);
+            
             if(semtech_loramac_join(&loramac, LORAMAC_JOIN_OTAA) == SEMTECH_LORAMAC_JOIN_SUCCEEDED)
             {
                  puts("procedure join with new APPKEY");
@@ -116,25 +116,25 @@ int main (void)
             puts("Cannot read temperature!");
         }
 
-        char message[64];
-        sprintf(message, "H: %d.%d%%, T:%d.%dC",
+        printf("H: %d.%d%%, T:%d.%dC\n",
                 (humidity / 10), (humidity % 10),
                 (temperature / 10), (temperature % 10));
-        //printf("Sending message '%s'\n", message);
-
-        /* send the message here */
-        if (semtech_loramac_send(&loramac, (uint8_t *)message, strlen(message)) != SEMTECH_LORAMAC_TX_DONE) 
-        {
-            printf("Cannot send message '%s'\n", message);
-        }
         
-        else 
+        cayenne_lpp_add_temperature(&lpp, 0, (float)temperature / 10);
+        cayenne_lpp_add_relative_humidity(&lpp, 1, (float)humidity / 10);
+
+        printf("Sending LPP data\n");
+        
+        uint8_t ret = semtech_loramac_send(&loramac, lpp.buffer, lpp.cursor);
+        
+        if (ret != SEMTECH_LORAMAC_TX_DONE) 
         {
-            printf("Message '%s' sent\n", message);
+            printf("Cannot send lpp message, ret code: %d\n", ret);
         }
 
-        /* wait 20 seconds between each message */
-        ztimer_sleep(ZTIMER_MSEC, 20 * MS_PER_SEC);
+        cayenne_lpp_reset(&lpp);
+
+        ztimer_sleep(ZTIMER_MSEC, 5 * MS_PER_SEC);
     }   
     return 0; 
 }    

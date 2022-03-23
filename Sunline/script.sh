@@ -1,6 +1,10 @@
 #!/bin/bash
-i=$1
-for (( c=1; c<=i; c++ ))
-do
- ./script_saclay.sh $1 & 
-done
+
+iotlab-experiment submit -n "Saclay" -d 15 -l 2,site=saclay+archi=st-lrwan1:sx1276
+
+iotlab-experiment wait --timeout 30 --cancel-on-timeout
+
+iotlab-experiment --jmespath="items[*].network_address | sort(@)" get --nodes
+
+make BOARD=b-l072z-lrwan1 IOTLAB_NODES=2 -C ../Sunline iotlab-flash  
+
